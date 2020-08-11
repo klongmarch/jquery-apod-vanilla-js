@@ -1,19 +1,26 @@
 var apod = {
   //Injects the results of the API call into the DOM
   buildDOM: function(result) {
-    $("#apodTitle").text(result.title);
+    document.getElementById("apodTitle").textContent = result.title;
 
     if(result.media_type === 'video') {
-      $("#apodImage").hide();
-      $("#apodVideo > iframe").attr("src", result.url).show();
+      document.getElementById("apodImg").style.display = "none";
+
+      var videoElem = document.querySelector("#apodVideo > iframe");
+      videoElem.src = result.url;
+      videoElem.style.display = "";
     }else{
-      $("#apodVideo").hide();
-      $("#apodImg").attr("src", result.url).attr('alt', result.title).show();
+      document.querySelector("#apodVideo").style.display = "none";
+      
+      var imageElem = document.getElementById("apodImg");
+      imageElem.src = result.url;
+      imageElem.alt = result.title;
+      imageElem.style.display = "";
     }
 
-    $("#apodCopyright").text("Copyright: " + result.copyright);
-    $("#apodDate").text("Date: " + result.date);
-    $("#apodDesc").text(result.explanation);
+    document.getElementById("apodCopyright").textContent = "Copyright: " + result.copyright;
+    document.getElementById("apodDate").textContent = "Date: " + result.date;
+    document.getElementById("apodDesc").textContent = result.explanation;
   },
 
   //Executes an AJAX call to an API.
@@ -23,6 +30,7 @@ var apod = {
 
     let date = this.randomDate(new Date(1995, 5, 16), new Date());
     var url = "https://api.nasa.gov/planetary/apod?api_key=NJgjtxDubyLCAKXTGAhjze7IguWwCs8Rl22O6Dil&date=" + date;
+/*
     $.ajax({
         url: url
     }).done(function(result){
@@ -30,6 +38,24 @@ var apod = {
     }).fail(function(result){
       console.log(result);
     });
+*/
+
+    var xhttp = new XMLHttpRequest();
+    
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        var jsonObj = JSON.parse(this.responseText);
+
+        if (this.status == 200) {
+          _this.buildDOM(jsonObj);
+          // console.log(jsonObj);
+        } else {
+          console.log(jsonObj);
+        }
+      }
+    };
+    xhttp.open("GET", url, true);
+    xhttp.send();
   },
 
   // Initialization method.
@@ -37,8 +63,8 @@ var apod = {
     this.getRequest();
   },
 
-	//Create a random date
-	randomDate: function(start, end) {
+  //Create a random date
+  randomDate: function(start, end) {
     //Randomize the date https://gist.github.com/miguelmota/5b67e03845d840c949c4
     let date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 
@@ -56,15 +82,11 @@ var apod = {
       d = '0'+d
     }
 
-    return `${y}-${m}-${d}`;
+    return y + "-" + m + "-" + d;
   },
 };
 
 apod.init();
 
-/* https://learn.jquery.com/using-jquery-core/document-ready/ */
-$(function() {
-  $('#btnRandApod').on('click',function(){
-    apod.getRequest();
-  });
-});
+document.getElementById("btnRandApod")
+    .addEventListener("click", ()=>{apod.getRequest();});
